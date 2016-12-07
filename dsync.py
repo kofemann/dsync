@@ -68,10 +68,11 @@ def main():
         LOG.error("Checksum mismatch: <expected/actual> %s/%s" % (lsum, rsum))
 
     end = datetime.now()
-    elapsed = (end - start).total_seconds()
+    elapsed = end - start
 
-    speed = lsize/elapsed
-    LOG.info("Copy of %s to %s complete (%s/s)" % (src, dest, to_size_string(speed)))
+    speed = lsize/elapsed.total_seconds()
+
+    LOG.info("Copy of %s to %s complete in %s (%s/s)" % (src, dest, elapsed, to_size_string(speed)))
 
 def to_size_string(n):
 
