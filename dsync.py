@@ -66,6 +66,7 @@ def main():
     rsum = getSumFromPnfs(dest)
     if lsum != rsum:
         LOG.error("Checksum mismatch: <expected/actual> %s/%s" % (lsum, rsum))
+        sys.exit(6)
 
     end = datetime.now()
     elapsed = end - start
@@ -73,6 +74,7 @@ def main():
     speed = lsize/elapsed.total_seconds()
 
     LOG.info("Copy of %s to %s complete in %s (%s/s)" % (src, dest, elapsed, to_size_string(speed)))
+    sys.exit(0)
 
 def to_size_string(n):
 
