@@ -16,9 +16,12 @@ import errno
 
 LOG = logging.getLogger("dsync")
 LOG.setLevel(logging.INFO)
-BUF_SIZE = 1024*1024
+
+IO_SIZE = 1024*1024
+
 CSUM_PREFIX = "ADLER32:"
 CSUM_PREFIX_LEN = len(CSUM_PREFIX)
+
 SIZE_SUFFIX = ["", "KB", "MB", "GB", "TB"]
 
 def main():
@@ -58,7 +61,7 @@ def main():
         LOG.error("Failed to close destination: %s" % e.strerror)
         sys.exit(5)
 
-    waitForSize(dest, lsize)
+    waitForSize(dest, lsize, 10)
 
     rsum = getSumFromPnfs(dest)
     if lsum != rsum:
@@ -71,10 +74,15 @@ def main():
     LOG.info("Copy of %s to %s complete (%s/s)" % (src, dest, to_size_string(speed)))
 
 def to_size_string(n):
+
+    """Returs file size in human readabe form, e.g. 8192 => 8Kb"""
+
     f = int(floor(log(n, 1024)))
     return "%d%s" % (int(n/1024**f), SIZE_SUFFIX[f])
 
 def getSumFromPnfs(path):
+
+    """Get file's checksum by accessing magic file"""
 
     d = dirname(path)
     b = basename(path)
@@ -85,20 +93,26 @@ def getSumFromPnfs(path):
             i = string.find(l, CSUM_PREFIX)
             if i != -1:
                 return l[i+CSUM_PREFIX_LEN:].strip()
-        
-def waitForSize(path, size):
+
+
+def waitForSize(path, size, timeout):
+
+    """Wait until file gets specified size. Wait timeout seconds before retry"""
+
     while True:
         stat = os.stat(path)
         if stat.st_size == size:
             break
         LOG.info("File size is not ready yet, waiting")
-        time.sleep(10)
+        time.sleep(timeout)
 
 def copy(src, dest):
 
+    """Copy data from src file to dest. Return on-the-fligh calculated local checksum"""
+
     asum = 1
     while True:
-       data = os.read(src, BUF_SIZE)
+       data = os.read(src, IO_SIZE)
        if len(data) == 0:
             return hex(asum)[2:10].zfill(8).lower()
 
