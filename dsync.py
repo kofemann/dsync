@@ -71,10 +71,15 @@ def main():
     end = datetime.now()
     elapsed = end - start
 
-    speed = lsize/elapsed.total_seconds()
+    speed = lsize/to_seconds(elapsed)
 
     LOG.info("Copy of %s to %s complete in %s (%s/s)" % (src, dest, elapsed, to_size_string(speed)))
     sys.exit(0)
+
+def to_seconds(t):
+
+    """converts timedelta into total seconds"""
+    return (t.microseconds + (t.seconds + t.days * 24 * 3600) * 10**6) / 10**6
 
 def to_size_string(n):
 
