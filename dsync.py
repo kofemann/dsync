@@ -53,12 +53,14 @@ def main():
         lsum = copy(inFd, outFd)
     except OSError as e:
         LOG.error("Failed to copy: %s" % e.strerror)
+        os.remove(dest)
         sys.exit(4)
 
     try:
         os.close(outFd)
     except OSError as e:
         LOG.error("Failed to close destination: %s" % e.strerror)
+        os.remove(dest)
         sys.exit(5)
 
     waitForSize(dest, lsize, 10)
@@ -66,6 +68,7 @@ def main():
     rsum = getSumFromPnfs(dest)
     if lsum != rsum:
         LOG.error("Checksum mismatch: <expected/actual> %s/%s" % (lsum, rsum))
+        os.remove(dest)
         sys.exit(6)
 
     end = datetime.now()
