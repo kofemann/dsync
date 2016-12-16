@@ -57,6 +57,11 @@ def main():
         sys.exit(4)
 
     try:
+        os.close(inFd)
+    except OSError as e:
+        LOG.warn("Failed to close source: %s, ignoring" % e.strerror)
+
+    try:
         os.close(outFd)
     except OSError as e:
         LOG.error("Failed to close destination: %s" % e.strerror)
