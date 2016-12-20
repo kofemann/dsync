@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+# -*- coding: utf-8 -*-
 
 from __future__ import division
 import sys
@@ -25,11 +26,11 @@ CSUM_PREFIX_LEN = len(CSUM_PREFIX)
 SIZE_SUFFIX = ["", "KB", "MB", "GB", "TB"]
 
 def main():
-    
+
     if len(sys.argv) != 3:
         LOG.error("Usage: dsync <local> <remote>")
         sys.exit(1)
-    
+
     src = sys.argv[1]
     dest = sys.argv[2]
 
@@ -79,9 +80,10 @@ def main():
     end = datetime.now()
     elapsed = end - start
 
+    pnfsid = getPnfsId(dest)
     speed = lsize/to_seconds(elapsed)
 
-    LOG.info("Copy of %s to %s complete in %s (%s/s)" % (src, dest, elapsed, to_size_string(speed)))
+    LOG.info("Copy of %s to %s (%s) complete in %s (%s/s)" % (src, dest, pnfsid, elapsed, to_size_string(speed)))
     sys.exit(0)
 
 def to_seconds(t):
@@ -110,6 +112,17 @@ def getSumFromPnfs(path):
             if i != -1:
                 return l[i+CSUM_PREFIX_LEN:].strip()
 
+def getPnfsId(path):
+
+    """Get file's pnfsid by accessing magic file"""
+
+    d = dirname(path)
+    b = basename(path)
+
+    pnfsid_file = "%s/.(id)(%s)" % (d, b)
+    with open(pnfsid_file) as f:
+        id = f.read().strip()
+        return id
 
 def waitForSize(path, size, timeout):
 
