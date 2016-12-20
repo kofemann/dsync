@@ -101,7 +101,8 @@ def main():
     pnfsid = getPnfsId(dest)
     speed = lsize/to_seconds(elapsed)
 
-    OUT_LOG.info("Copy of %s to %s (%s) complete in %s (%s/s)" % (src, dest, pnfsid, elapsed, to_size_string(speed)))
+    OUT_LOG.info("%s => %s %s %s %d (%s) %s (%s/s)" % \
+        (os.path.realpath(src), dest, pnfsid, lsum, lsize, to_size_string(lsize), elapsed, to_size_string(speed)))
     sys.exit(0)
 
 def to_seconds(t):
