@@ -4,6 +4,7 @@
 from __future__ import division
 import sys
 import logging
+import logging.handlers
 import os
 from os import O_RDONLY, O_WRONLY, O_CREAT, O_EXCL, O_SYNC
 from zlib import adler32
@@ -13,6 +14,7 @@ import time
 from math import floor, log
 from datetime import datetime, timedelta
 import errno
+import getopt
 
 
 LOG = logging.getLogger("dsync")
@@ -26,13 +28,29 @@ CSUM_PREFIX_LEN = len(CSUM_PREFIX)
 SIZE_SUFFIX = ["", "KB", "MB", "GB", "TB"]
 
 def main():
+    OUT_LOG = LOG
+    try:
+        opts, args = getopt.getopt(sys.argv[1:], 'o:')
+        for o, a in opts:
+            if o == '-o':
+                OUT_LOG = logging.getLogger("sdync.out")
+                OUT_LOG.setLevel(logging.INFO)
+                out_handler = logging.handlers.WatchedFileHandler(a)
+                out_formater = logging.Formatter('%(asctime)s - %(message)s', '%Y%m%d%H%M%S')
+                out_handler.setFormatter(out_formater)
+                OUT_LOG.addHandler(out_handler)
 
-    if len(sys.argv) != 3:
-        LOG.error("Usage: dsync <local> <remote>")
+        if len(args) != 2:
+            raise getopt.GetoptError("Invalid number of arguments")
+
+        src = args[0]
+        dest = args[1]
+
+    except getopt.GetoptError as e:
+        sys.stderr.write("Failed to process command line arguments: %s\n" % e)
+        sys.stderr.write("\n")
+        sys.stderr.write("Usage: dsync [-o <out log>] <local> <remote>\n")
         sys.exit(1)
-
-    src = sys.argv[1]
-    dest = sys.argv[2]
 
     LOG.info("Starting backup of %s" % src)
     start = datetime.now()
@@ -83,7 +101,7 @@ def main():
     pnfsid = getPnfsId(dest)
     speed = lsize/to_seconds(elapsed)
 
-    LOG.info("Copy of %s to %s (%s) complete in %s (%s/s)" % (src, dest, pnfsid, elapsed, to_size_string(speed)))
+    OUT_LOG.info("Copy of %s to %s (%s) complete in %s (%s/s)" % (src, dest, pnfsid, elapsed, to_size_string(speed)))
     sys.exit(0)
 
 def to_seconds(t):
