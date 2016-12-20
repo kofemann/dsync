@@ -16,9 +16,13 @@ from datetime import datetime, timedelta
 import errno
 import getopt
 
+LOG_FORMATTER = logging.Formatter('%(asctime)s - %(message)s', '%Y%m%d%H%M%S')
+CONSOLE = logging.StreamHandler()
+CONSOLE.setFormatter(LOG_FORMATTER)
 
-LOG = logging.getLogger("dsync")
-LOG.setLevel(logging.INFO)
+LOG = logging.Logger("debug")
+LOG.setLevel(logging.DEBUG)
+LOG.addHandler(CONSOLE)
 
 IO_SIZE = 1024*1024
 
@@ -28,17 +32,18 @@ CSUM_PREFIX_LEN = len(CSUM_PREFIX)
 SIZE_SUFFIX = ["", "KB", "MB", "GB", "TB"]
 
 def main():
-    OUT_LOG = LOG
+    OUT_LOG = None
     try:
-        opts, args = getopt.getopt(sys.argv[1:], 'o:')
+        opts, args = getopt.getopt(sys.argv[1:], 'o:q')
         for o, a in opts:
             if o == '-o':
-                OUT_LOG = logging.getLogger("sdync.out")
-                OUT_LOG.setLevel(logging.INFO)
+                OUT_LOG = logging.Logger("output")
                 out_handler = logging.handlers.WatchedFileHandler(a)
-                out_formater = logging.Formatter('%(asctime)s - %(message)s', '%Y%m%d%H%M%S')
-                out_handler.setFormatter(out_formater)
+                out_handler.setFormatter(LOG_FORMATTER)
+                out_handler.setLevel(logging.INFO)
                 OUT_LOG.addHandler(out_handler)
+            elif o == '-q':
+                CONSOLE.setLevel(logging.ERROR)
 
         if len(args) != 2:
             raise getopt.GetoptError("Invalid number of arguments")
@@ -101,8 +106,13 @@ def main():
     pnfsid = getPnfsId(dest)
     speed = lsize/to_seconds(elapsed)
 
-    OUT_LOG.info("%s => %s %s %s %d (%s) %s (%s/s)" % \
-        (os.path.realpath(src), dest, pnfsid, lsum, lsize, to_size_string(lsize), elapsed, to_size_string(speed)))
+    msg = "%s => %s %s %s %d (%s) %s (%s/s)" % \
+        (os.path.realpath(src), dest, pnfsid, lsum, lsize, to_size_string(lsize), elapsed, to_size_string(speed))
+
+    LOG.info(msg)
+    if OUT_LOG is not None:
+        OUT_LOG.info(msg)
+
     sys.exit(0)
 
 def to_seconds(t):
