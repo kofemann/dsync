@@ -166,7 +166,7 @@ def waitForSize(path, size, timeout):
 
 def copy(src, dest):
 
-    """Copy data from src file to dest. Return on-the-fligh calculated local checksum"""
+    """Copy data from src file to dest. Return on-the-flight calculated local checksum"""
 
     asum = 1
     while True:
