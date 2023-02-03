@@ -68,7 +68,7 @@ def main():
         sys.exit(2)
 
     try:
-        outFd = os.open(dest, O_WRONLY | O_CREAT | O_EXCL | O_SYNC, 0600)
+        outFd = os.open(dest, O_WRONLY | O_CREAT | O_EXCL | O_SYNC, 0o0600)
     except OSError as e:
         LOG.error("Failed to create destination file: %s" % e.strerror)
         sys.exit(3)
